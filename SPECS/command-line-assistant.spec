@@ -11,12 +11,17 @@
 
 Name:           command-line-assistant
 Version:        0.3.1
-Release:        1%{?dist}
+Release:        3%{?dist}
 Summary:        A simple wrapper to interact with RAG
 
 License:        Apache-2.0
 URL:            https://github.com/rhel-lightspeed/command-line-assistant
 Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
+# Merged upstream:
+# https://github.com/rhel-lightspeed/command-line-assistant/pull/324
+Patch0:         324.patch
+Patch1:         325.patch
+
 # noarch because there is no extension module for this package.
 BuildArch:      noarch
 
@@ -59,7 +64,7 @@ Requires(post): selinux-policy-%{selinuxtype}
 This package installs and sets up the  SELinux policy security module for clad.
 
 %prep
-%autosetup -n %{name}-%{version}
+%autosetup -n %{name}-%{version} -p1
 
 %build
 %py3_build_wheel
@@ -170,6 +175,9 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Fri Apr 4 2025 Rodolfo Olivieri <rolivier@redhat.com> - 0.3.1-3
+- Disable colored in output
+
 * Tue Mar 18 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.3.1
 - Add exception handling for RuntimeError
 - Disallow empty query arguments for query_string and stdin

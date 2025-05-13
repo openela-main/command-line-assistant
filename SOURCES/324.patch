@@ -1,0 +1,33 @@
+From 9ef15dafb3fc0cd0e63b9a79d6f695e799956afb Mon Sep 17 00:00:00 2001
+From: Rodolfo Olivieri <rolivier@redhat.com>
+Date: Fri, 4 Apr 2025 11:57:34 -0300
+Subject: [PATCH] Disable colors in output (#324)
+
+---
+ command_line_assistant/initialize.py | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/command_line_assistant/initialize.py b/command_line_assistant/initialize.py
+index 71396d1..aa03983 100644
+--- a/command_line_assistant/initialize.py
++++ b/command_line_assistant/initialize.py
+@@ -1,6 +1,7 @@
+ """Main module for the cli."""
+ 
+ import logging
++import os
+ import sys
+ from argparse import ArgumentParser, Namespace
+ 
+@@ -48,6 +49,8 @@ def initialize() -> int:
+     error_renderer = create_error_renderer()
+     warning_renderer = create_warning_renderer()
+ 
++    os.environ["NO_COLOR"] = "1"
++
+     try:
+         stdin = read_stdin()
+         args = add_default_command(stdin, sys.argv)
+-- 
+2.49.0
+
