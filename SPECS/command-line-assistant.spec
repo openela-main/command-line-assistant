@@ -11,16 +11,18 @@
 
 Name:           command-line-assistant
 Version:        0.3.1
-Release:        3%{?dist}
+Release:        6%{?dist}
 Summary:        A simple wrapper to interact with RAG
 
 License:        Apache-2.0
 URL:            https://github.com/rhel-lightspeed/command-line-assistant
 Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
-# Merged upstream:
-# https://github.com/rhel-lightspeed/command-line-assistant/pull/324
-Patch0:         324.patch
-Patch1:         325.patch
+Patch0:         0001-Disable-colors-in-output-324.patch
+Patch1:         0002-Fix-CommandContext-to-get-user-ID-correctly-by-chang.patch
+Patch2:         0003-Add-horizontal-lines-to-output.patch
+Patch3:         0004-CustomServerObjectHandler.patch
+Patch4:         0005-Pin-dasbus-to-1.4-and-pygobject-to-3.40.1.patch
+Patch5:         0006-Add-D-Bus-interface-authorization.patch
 
 # noarch because there is no extension module for this package.
 BuildArch:      noarch
@@ -175,6 +177,10 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Mon Aug 25 2025 Link Dupont <link@redhat.com> - 0.3.1-6
+- Use geteuid instead of getegid to identify user
+- Verify sender UID before executing D-Bus methods (RHEL-95929)
+
 * Fri Apr 4 2025 Rodolfo Olivieri <rolivier@redhat.com> - 0.3.1-3
 - Disable colored in output
 

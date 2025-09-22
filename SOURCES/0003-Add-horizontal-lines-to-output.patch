@@ -1,5 +1,14 @@
+From 0eb8dacbd0519b3cf76601862a496edf1449c522 Mon Sep 17 00:00:00 2001
+From: Link Dupont <link@sub-pop.net>
+Date: Mon, 25 Aug 2025 11:25:48 -0400
+Subject: [PATCH] Add horizontal lines to output
+
+---
+ command_line_assistant/commands/chat.py | 4 ++++
+ 1 file changed, 4 insertions(+)
+
 diff --git a/command_line_assistant/commands/chat.py b/command_line_assistant/commands/chat.py
-index ab15454..818fa61 100644
+index 9a77e39..fb84c91 100644
 --- a/command_line_assistant/commands/chat.py
 +++ b/command_line_assistant/commands/chat.py
 @@ -296,7 +296,11 @@ class BaseChatOperation(BaseOperation):
@@ -14,3 +23,6 @@ index ab15454..818fa61 100644
          self.notice_renderer.render(ALWAYS_LEGAL_MESSAGE)
  
      @timing.timeit
+-- 
+2.48.1
+
