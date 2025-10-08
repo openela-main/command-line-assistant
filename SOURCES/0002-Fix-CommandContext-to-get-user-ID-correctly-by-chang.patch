@@ -1,0 +1,26 @@
+From 40f7ca9c2d786fbf999b8b4748e15bfe85bd2ee0 Mon Sep 17 00:00:00 2001
+From: Link Dupont <link@sub-pop.net>
+Date: Thu, 26 Jun 2025 13:53:12 -0400
+Subject: [PATCH] Fix CommandContext to get user ID correctly by changing from
+ os.getegid() to os.geteuid()
+
+---
+ command_line_assistant/utils/cli.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/command_line_assistant/utils/cli.py b/command_line_assistant/utils/cli.py
+index 9e40af3..9edc80e 100644
+--- a/command_line_assistant/utils/cli.py
++++ b/command_line_assistant/utils/cli.py
+@@ -38,7 +38,7 @@ class CommandContext:
+     """
+ 
+     username: str = getpass.getuser()
+-    effective_user_id: int = os.getegid()
++    effective_user_id: int = os.geteuid()
+ 
+     # Empty dictionary for os_release information. Parsed at the __post__init__ method.
+     os_release: dict[str, str] = dataclasses.field(default_factory=dict)
+-- 
+2.48.1
+
