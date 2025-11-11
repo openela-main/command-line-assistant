@@ -10,19 +10,15 @@
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.3.1
-Release:        6%{?dist}
+Version:        0.4.2
+Release:        1%{?dist}
 Summary:        A simple wrapper to interact with RAG
 
 License:        Apache-2.0
 URL:            https://github.com/rhel-lightspeed/command-line-assistant
-Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
-Patch0:         0001-Disable-colors-in-output-324.patch
-Patch1:         0002-Fix-CommandContext-to-get-user-ID-correctly-by-chang.patch
-Patch2:         0003-Add-horizontal-lines-to-output.patch
-Patch3:         0004-CustomServerObjectHandler.patch
-Patch4:         0005-Pin-dasbus-to-1.4-and-pygobject-to-3.40.1.patch
-Patch5:         0006-Add-D-Bus-interface-authorization.patch
+Source0:        %{url}/releases/download/v%{version}/%{name}-%{version}.tar.gz
+
+Patch0:         0001-Add-D-Bus-interface-authorization.patch
 
 # noarch because there is no extension module for this package.
 BuildArch:      noarch
@@ -66,7 +62,7 @@ Requires(post): selinux-policy-%{selinuxtype}
 This package installs and sets up the  SELinux policy security module for clad.
 
 %prep
-%autosetup -p1 -n %{name}-%{version}
+%autosetup -n %{name}-%{version} -p1
 
 %build
 %py3_build_wheel
@@ -83,21 +79,17 @@ popd
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/xdg/%{name}
 %{__install} -d -m 0755 %{buildroot}/%{_sysconfdir}/systemd/system/clad.service.d
 %{__install} -d -m 0755 %{buildroot}/%{_sharedstatedir}/%{name}
-%{__install} -d %{buildroot}/%{_sbindir}
 %{__install} -d %{buildroot}/%{_mandir}/man1
 %{__install} -d %{buildroot}/%{_mandir}/man8
 %{__install} -d %{buildroot}/%{_datadir}/selinux/packages/%{selinuxtype}
-
-# Move the daemon to /usr/sbin instead of /usr/bin
-%{__install} -m 0755 %{buildroot}/%{_bindir}/%{daemon_binary_name} %{buildroot}/%{_sbindir}/%{daemon_binary_name}
-%{__rm} %{buildroot}/%{_bindir}/%{daemon_binary_name}
 
 # Symlink `c` to `cla`
 ln -sr %{buildroot}/%{_bindir}/%{binary_name} %{buildroot}/%{_bindir}/%{symlink_binary_name}
 ln -sr %{buildroot}%{_mandir}/man1/%{binary_name}.1 %{buildroot}%{_mandir}/man1/%{symlink_binary_name}.1
 
-# System units
+# System units & tmpfiles.d config
 %{__install} -D -m 0644 data/release/systemd/%{daemon_binary_name}.service %{buildroot}/%{_unitdir}/%{daemon_binary_name}.service
+%{__install} -D -m 0644 data/release/systemd/%{daemon_binary_name}.tmpfiles.conf %{buildroot}/%{_tmpfilesdir}/%{daemon_binary_name}.conf
 
 # d-bus policy config
 %{__install} -D -m 0644 data/release/dbus/com.redhat.lightspeed.conf %{buildroot}/%{_datadir}/dbus-1/system.d/com.redhat.lightspeed.conf
@@ -147,10 +139,11 @@ fi
 # Binaries
 %{_bindir}/%{binary_name}
 %{_bindir}/%{symlink_binary_name}
-%{_sbindir}/%{daemon_binary_name}
+%{_bindir}/%{daemon_binary_name}
 
 # System units
 %{_unitdir}/%{daemon_binary_name}.service
+%{_tmpfilesdir}/%{daemon_binary_name}.conf
 
 # d-bus policy config
 %{_datadir}/dbus-1/system.d/com.redhat.lightspeed.conf
@@ -177,12 +170,38 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
-* Mon Aug 25 2025 Link Dupont <link@redhat.com> - 0.3.1-6
-- Use geteuid instead of getegid to identify user
-- Verify sender UID before executing D-Bus methods (RHEL-95926)
+* Mon Aug 18 2025 Link Dupont <link@redhat.com> - 0.4.2
+- Migrate from poetry to uv
+- Fix typo in warning message for total input size
+- Catch OSError being thrown by submit method (RHEL-102629)
 
-* Fri Apr 4 2025 Rodolfo Olivieri <rolivier@redhat.com> - 0.3.1-3
-- Disable colored in output
+* Thu Jul 10 2025 Link Dupont <link@redhat.com> - 0.4.1
+- Add horizontal lines back
+- Limit permission for history database to own user
+- Fix interactive mode regression
+- Fix legal message regression found in 0.4
+- Print help message in case of command has no arguments (RHEL-93272)
+- Fix CommandContext to get user ID correctly by changing from os.getegid() to os.geteuid()
+- Allow to pass terminal output without question or stdin
+- Add missing line for %files in rpmbuild
+- Add horizontal line after spinner message
+- Fix terminal width handling in TextWrapDecorator (RHEL-95741)
+- Fix regression for c history
+
+* Tue May 27 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.4.0
+- Refactor error codes
+- Add support for plain, simple output
+- Add tmpfs SELinux domain
+- Add check in clear(-all) to check if there is any chat to clean
+- Update colors in MarkdownRenderer to make the text more visible
+- Apply fixes to commands description and manpage in general
+- Fix legal message not showing up on each session
+- Prevent --with-output without terminal capture
+- Fix chat description and name defaults
+- Default to --all in history command
+- Fix unprocessable entity request for inference
+- Warn if .bashrc.d missing
+- Honor the http_proxy environment variables
 
 * Tue Mar 18 2025 Rodolfo Olivieri <rolivier@redhat.com> 0.3.1
 - Add exception handling for RuntimeError
