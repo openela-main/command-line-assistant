@@ -1,0 +1,178 @@
+From 1af6120ed3ac8f53abd91bf314b213815a632e8c Mon Sep 17 00:00:00 2001
+From: Rodolfo Olivieri <rolivier@redhat.com>
+Date: Tue, 2 Dec 2025 15:12:04 -0300
+Subject: [PATCH] Remove theme.toml config from #463 (#532)
+
+The theme.toml was supposed to be a temporary testing and not something
+to go to production. This commit is removing the implementation.
+---
+ command_line_assistant/client.py            |  4 +--
+ command_line_assistant/commands/chat.py     |  4 +--
+ command_line_assistant/commands/feedback.py |  4 +--
+ command_line_assistant/commands/history.py  |  4 +--
+ command_line_assistant/commands/shell.py    |  4 +--
+ command_line_assistant/rendering/theme.py   | 28 ++-------------------
+ 6 files changed, 12 insertions(+), 36 deletions(-)
+
+diff --git a/command_line_assistant/client.py b/command_line_assistant/client.py
+index 21b4000..79987a2 100644
+--- a/command_line_assistant/client.py
++++ b/command_line_assistant/client.py
+@@ -19,7 +19,7 @@ from command_line_assistant.commands.history import history_command
+ from command_line_assistant.commands.shell import shell_command
+ from command_line_assistant.logger import setup_client_logging
+ from command_line_assistant.rendering.renderers import Renderer
+-from command_line_assistant.rendering.theme import load_theme
++from command_line_assistant.rendering.theme import Theme
+ 
+ 
+ def register_subcommands() -> ArgumentParser:
+@@ -54,7 +54,7 @@ def main() -> int:
+     # specified the --plain flag. This allows the exceptions below that use
+     # these renders to follow the user's preference.
+     plain_in_argv = "-p" in sys.argv or "--plain" in sys.argv
+-    renderer = Renderer(plain=plain_in_argv, theme=load_theme())
++    renderer = Renderer(plain=plain_in_argv, theme=Theme())
+ 
+     try:
+         stdin = read_stdin()
+diff --git a/command_line_assistant/commands/chat.py b/command_line_assistant/commands/chat.py
+index 0eaa44b..2c316fe 100644
+--- a/command_line_assistant/commands/chat.py
++++ b/command_line_assistant/commands/chat.py
+@@ -31,7 +31,7 @@ from command_line_assistant.rendering.renderers import (
+     format_datetime,
+     human_readable_size,
+ )
+-from command_line_assistant.rendering.theme import load_theme
++from command_line_assistant.rendering.theme import Theme
+ from command_line_assistant.terminal.parser import (
+     find_output_by_index,
+     parse_terminal_output,
+@@ -209,7 +209,7 @@ def chat_command(args: Namespace, context: CommandContext) -> int:
+     Returns:
+         int: The exit code.
+     """
+-    render = Renderer(args.plain, theme=load_theme())
++    render = Renderer(args.plain, theme=Theme())
+     dbus = DbusClient()
+ 
+     user_id = dbus.user_proxy.GetUserId(context.effective_user_id)
+diff --git a/command_line_assistant/commands/feedback.py b/command_line_assistant/commands/feedback.py
+index 8976aa7..7c9bf82 100644
+--- a/command_line_assistant/commands/feedback.py
++++ b/command_line_assistant/commands/feedback.py
+@@ -5,7 +5,7 @@ from argparse import Namespace
+ 
+ from command_line_assistant.commands.cli import CommandContext, argument, command
+ from command_line_assistant.rendering.renderers import Renderer
+-from command_line_assistant.rendering.theme import load_theme
++from command_line_assistant.rendering.theme import Theme
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
+ )
+ def feedback_command(args: Namespace, context: CommandContext) -> int:
+     """Feedback command implementation."""
+-    render = Renderer(args.plain, theme=load_theme())
++    render = Renderer(args.plain, theme=Theme())
+ 
+     render.notice(
+         "Do not include any personal information or other"
+diff --git a/command_line_assistant/commands/history.py b/command_line_assistant/commands/history.py
+index a35d79b..0a37cad 100644
+--- a/command_line_assistant/commands/history.py
++++ b/command_line_assistant/commands/history.py
+@@ -21,7 +21,7 @@ from command_line_assistant.rendering.renderers import (
+     Renderer,
+     format_datetime,
+ )
+-from command_line_assistant.rendering.theme import load_theme
++from command_line_assistant.rendering.theme import Theme
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -96,7 +96,7 @@ def history_command(args: Namespace, context: CommandContext) -> int:
+         int: Exit code.
+     """
+     dbus = DbusClient()
+-    render = Renderer(args.plain, theme=load_theme())
++    render = Renderer(args.plain, theme=Theme())
+ 
+     user_id = dbus.user_proxy.GetUserId(context.effective_user_id)
+ 
+diff --git a/command_line_assistant/commands/shell.py b/command_line_assistant/commands/shell.py
+index 1506d73..dae8dc8 100644
+--- a/command_line_assistant/commands/shell.py
++++ b/command_line_assistant/commands/shell.py
+@@ -13,7 +13,7 @@ from command_line_assistant.commands.cli import (
+ from command_line_assistant.exceptions import ShellCommandException
+ from command_line_assistant.integrations import BASH_INTERACTIVE
+ from command_line_assistant.rendering.renderers import Renderer
+-from command_line_assistant.rendering.theme import load_theme
++from command_line_assistant.rendering.theme import Theme
+ from command_line_assistant.terminal.reader import (
+     TERMINAL_CAPTURE_FILE,
+     start_capturing,
+@@ -61,7 +61,7 @@ def shell_command(args: Namespace, context: CommandContext) -> int:
+     Returns:
+         int: Exit code
+     """
+-    render = Renderer(args.plain, theme=load_theme())
++    render = Renderer(args.plain, theme=Theme())
+ 
+     try:
+         # Handle different operations
+diff --git a/command_line_assistant/rendering/theme.py b/command_line_assistant/rendering/theme.py
+index adfdb36..a78746a 100644
+--- a/command_line_assistant/rendering/theme.py
++++ b/command_line_assistant/rendering/theme.py
+@@ -1,22 +1,14 @@
+ import logging
+ import sys
+ from dataclasses import dataclass
+-from pathlib import Path
+ from typing import Optional
+ 
+ from command_line_assistant.rendering.colors import Color
+-from command_line_assistant.utils.environment import get_xdg_config_path
+ 
+ if sys.version_info >= (3, 11):
+-    import tomllib
++    pass
+ else:
+-    import tomli as tomllib
+-
+-#: Define the theme file path.
+-THEME_FILE_DEFINITION: tuple[str, str] = (
+-    "command-line-assistant",
+-    "theme.toml",
+-)
++    pass
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -86,19 +78,3 @@ class Theme:
+             self.link = Color.from_string(self.link)
+             self.image = Color.from_string(self.image)
+             self.horizontal_rule = Color.from_string(self.horizontal_rule)
+-
+-
+-def load_theme() -> Theme:
+-    """Load a theme from a file.
+-
+-    If the theme file is not found, a default theme is returned.
+-    """
+-    theme_file = Path(get_xdg_config_path(), *THEME_FILE_DEFINITION)
+-    try:
+-        if theme_file.exists():
+-            with open(theme_file, "rb") as f:
+-                config = tomllib.load(f)
+-            return Theme(config)
+-    except PermissionError as ex:
+-        logger.warning("Unable to read theme file %s: %s", theme_file, str(ex))
+-    return Theme()
+-- 
+2.52.0
+

@@ -4,24 +4,22 @@
 %define symlink_binary_name cla
 %define daemon_binary_name clad
 
-%define selinux_policyver 41.27-1
-
 %define selinuxtype targeted
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.4.2
-Release:        1%{?dist}
-Summary:        A simple wrapper to interact with RAG
+Version:        0.5.0
+Release:        2%{?dist}
+Summary:        RHEL command line assistant powered by Red Hat Lightspeed
 
 License:        Apache-2.0
 URL:            https://github.com/rhel-lightspeed/command-line-assistant
 Source0:        %{url}/releases/download/v%{version}/%{name}-%{version}.tar.gz
-
-Patch0:         0001-Add-D-Bus-interface-authorization.patch
+Patch0:         0001-Remove-theme.toml-config-from-463-532.patch
 
 # noarch because there is no extension module for this package.
 BuildArch:      noarch
+
 
 BuildRequires:  python3-devel
 BuildRequires:  python3-setuptools
@@ -33,6 +31,7 @@ BuildRequires:  systemd-units
 BuildRequires:  selinux-policy-devel
 
 Requires:       python3-dasbus
+Requires:       python3-markdown
 Requires:       python3-requests
 Requires:       python3-sqlalchemy
 Requires:       systemd
@@ -49,20 +48,34 @@ Requires:       python3-tomli
 %{?python_disable_dependency_generator}
 
 %description
-A simple wrapper to interact with RAG
+With the RHEL command line assistant powered by Red Hat Lightspeed, you can get expert
+guidance and assistance with managing RHEL right from your command line, all by
+using natural language. The generative AI that powers the command line assistant
+incorporates information from the RHEL product documentation and Red Hat
+Knowledgebase, and can help you understand, configure, and troubleshoot your
+RHEL systems.
 
 %package selinux
 Summary:    CLAD SELinux policy
 BuildArch:  noarch
 
+# Set selinux_ver depending on RHEL version
+%if 0%{?rhel} && 0%{?rhel} < 10
+%define selinux_ver 38.1.65
+%else
+%define selinux_ver 42.1.7
+%endif
+
+Requires:       selinux-policy >= %{selinux_ver}
 Requires:       selinux-policy-%{selinuxtype}
 Requires(post): selinux-policy-%{selinuxtype}
+Requires(post): selinux-policy-base >= %{selinux_ver}
 
 %description selinux
 This package installs and sets up the  SELinux policy security module for clad.
 
 %prep
-%autosetup -n %{name}-%{version} -p1
+%autosetup -p1 -n %{name}-%{version}
 
 %build
 %py3_build_wheel
@@ -170,6 +183,15 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Wed Dec 10 2025 Rodolfo Olivieri <rolivier@redhat.com> - 0.5.0-2
+- Pin version for selinux-policy
+
+* Thu Nov 13 2025 Rodolfo Olivieri <rolivier@redhat.com> - 0.5.0
+- Refactor commands module API
+- ANSI color rendering
+- Fix CVE-2025-5962
+- Update package description to include Red Hat Lightspeed
+
 * Mon Aug 18 2025 Link Dupont <link@redhat.com> - 0.4.2
 - Migrate from poetry to uv
 - Fix typo in warning message for total input size
