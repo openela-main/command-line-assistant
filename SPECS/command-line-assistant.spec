@@ -8,14 +8,13 @@
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.5.0
-Release:        2%{?dist}
-Summary:        RHEL command line assistant powered by Red Hat Lightspeed
+Version:        0.5.2
+Release:        4%{?dist}
+Summary:        RHEL command-line assistant
 
 License:        Apache-2.0
 URL:            https://github.com/rhel-lightspeed/command-line-assistant
 Source0:        %{url}/releases/download/v%{version}/%{name}-%{version}.tar.gz
-Patch0:         0001-Remove-theme.toml-config-from-463-532.patch
 
 # noarch because there is no extension module for this package.
 BuildArch:      noarch
@@ -47,9 +46,9 @@ Requires:       python3-tomli
 %{?python_disable_dependency_generator}
 
 %description
-With the RHEL command line assistant powered by Red Hat Lightspeed, you can get expert
+With the command-line assistant, you can get expert
 guidance and assistance with managing RHEL right from your command line, all by
-using natural language. The generative AI that powers the command line assistant
+using natural language. The generative AI that powers the command-line assistant
 incorporates information from the RHEL product documentation and Red Hat
 Knowledgebase, and can help you understand, configure, and troubleshoot your
 RHEL systems.
@@ -182,6 +181,10 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Wed Aug 12 2026 Rodolfo Olivieri <rolivier@redhat.com> - 0.5.2
+- Update CLA to align with updated Marketing strategy regarding Lightspeed brand
+- Do not show sentence of improving RH services for disconnected CLA
+
 * Wed Dec 10 2025 Rodolfo Olivieri <rolivier@redhat.com> - 0.5.0-2
 - Pin version for selinux-policy
 
