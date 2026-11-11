@@ -8,8 +8,8 @@
 %define modulename %{daemon_binary_name}
 
 Name:           command-line-assistant
-Version:        0.5.2
-Release:        4%{?dist}
+Version:        0.5.3
+Release:        1%{?dist}
 Summary:        RHEL command-line assistant
 
 License:        Apache-2.0
@@ -182,6 +182,11 @@ fi
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
 
 %changelog
+* Wed Sep 24 2026 Martin Litwora <mlitwora@redhat.com> - 0.5.3
+- Add a deprecation notice encouraging migrating to Goose
+- Allow libffi closures in clad.service
+- Allow clad_t to execute memory
+
 * Wed Aug 12 2026 Rodolfo Olivieri <rolivier@redhat.com> - 0.5.2
 - Update CLA to align with updated Marketing strategy regarding Lightspeed brand
 - Do not show sentence of improving RH services for disconnected CLA
